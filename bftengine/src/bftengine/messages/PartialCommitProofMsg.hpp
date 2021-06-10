@@ -12,9 +12,11 @@
 #pragma once
 
 #include "MessageBase.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 
 class IThresholdSigner;
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {

@@ -4,9 +4,11 @@
 #include "messages/MsgsCertificate.hpp"
 #include "messages/ClientReplyMsg.hpp"
 #include "CheckpointInfo.hpp"
-#include "Digest.hpp"
 #include "helper.hpp"
 #include "SigManager.hpp"
+#include "digest.hpp"
+
+using concord::util::Digest;
 
 using namespace bftEngine;
 

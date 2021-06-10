@@ -18,11 +18,13 @@
 #include <functional>
 
 #include "DataStore.hpp"
-#include "STDigest.hpp"
+#include "digest.hpp"
 #include "Logger.hpp"
 #include "kvstream.h"
 
 using std::map;
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace bcst {
@@ -110,14 +112,14 @@ class InMemoryDataStore : public DataStore {
 
   void associatePendingResPageWithCheckpoint(uint32_t inPageId,
                                              uint64_t inCheckpoint,
-                                             const STDigest& inPageDigest) override;
+                                             const Digest& inPageDigest) override;
 
-  void setResPage(uint32_t inPageId, uint64_t inCheckpoint, const STDigest& inPageDigest, const char* inPage) override;
+  void setResPage(uint32_t inPageId, uint64_t inCheckpoint, const Digest& inPageDigest, const char* inPage) override;
 
   bool getResPage(uint32_t inPageId,
                   uint64_t inCheckpoint,
                   uint64_t* outActualCheckpoint,
-                  STDigest* outPageDigest,
+                  Digest* outPageDigest,
                   char* outPage,
                   uint32_t copylength) override;
 
@@ -186,7 +188,7 @@ class InMemoryDataStore : public DataStore {
   };
 
   struct ResPageVal {
-    STDigest pageDigest;
+    Digest pageDigest;
     char* page;
   };
 

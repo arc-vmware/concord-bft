@@ -12,11 +12,13 @@
 #pragma once
 
 #include "MessageBase.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "OpenTracing.hpp"
 #include "ReplicasInfo.hpp"
 #include "ReplicaConfig.hpp"
 #include "ReplicaAsksToLeaveViewMsg.hpp"
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {

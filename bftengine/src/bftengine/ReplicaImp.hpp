@@ -15,7 +15,6 @@
 #include "ReplicaForStateTransfer.hpp"
 #include "CollectorOfThresholdSignatures.hpp"
 #include "SeqNumInfo.hpp"
-#include "Digest.hpp"
 #include "Crypto.hpp"
 #include "SimpleThreadPool.hpp"
 #include "ControllerBase.hpp"

@@ -12,8 +12,10 @@
 #pragma once
 
 #include "MessageBase.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "ReplicaConfig.hpp"
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {

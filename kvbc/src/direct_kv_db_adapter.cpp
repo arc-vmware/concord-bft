@@ -18,7 +18,7 @@
 #include "kv_types.hpp"
 #include "direct_kv_block.h"
 #include "direct_kv_db_adapter.h"
-#include "bcstatetransfer/SimpleBCStateTransfer.hpp"
+#include "digestutils.hpp"
 #include "hex_tools.h"
 #include "string.hpp"
 #include "assertUtils.hpp"
@@ -384,7 +384,7 @@ BlockId DBAdapter::addBlock(const SetOfKeyValuePairs &kv) {
   auto blockDigest = BlockDigest{};
   if (blockId > INITIAL_GENESIS_BLOCK_ID) {
     const auto parentBlockData = getRawBlock(blockId - 1);
-    blockDigest = bftEngine::bcst::computeBlockDigest(
+    blockDigest = concord::util::DigestUtil::computeBlockDigest(
         blockId - 1, reinterpret_cast<const char *>(parentBlockData.data()), parentBlockData.length());
   }
 

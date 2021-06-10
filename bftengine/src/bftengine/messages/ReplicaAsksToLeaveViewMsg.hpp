@@ -14,7 +14,6 @@
 #include <cstdint>
 
 #include "assertUtils.hpp"
-#include "Digest.hpp"
 #include "ReplicaConfig.hpp"
 
 #include "MessageBase.hpp"

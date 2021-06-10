@@ -15,9 +15,11 @@
 
 #include "PrimitiveTypes.hpp"
 #include "assertUtils.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "MessageBase.hpp"
 #include "ReplicaConfig.hpp"
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {

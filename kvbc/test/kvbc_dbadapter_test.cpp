@@ -8,6 +8,7 @@
 #include "kv_types.hpp"
 #include "direct_kv_db_adapter.h"
 #include "direct_kv_block.h"
+#include "block_digest.h"
 
 #ifdef USE_ROCKSDB
 #include "rocksdb/client.h"
@@ -20,7 +21,6 @@ using concordUtils::Sliver;
 using concord::kvbc::KeysVector;
 using concord::kvbc::KeyValuePair;
 using concord::kvbc::SetOfKeyValuePairs;
-using concord::kvbc::BlockDigest;
 using concord::kvbc::BlockId;
 // using concord::storage::rocksdb::Client;
 // using concord::storage::rocksdb::KeyComparator;

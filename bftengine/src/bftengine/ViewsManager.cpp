@@ -17,6 +17,7 @@
 
 #include "Logger.hpp"
 #include "PrimitiveTypes.hpp"
+#include "digest.hpp"
 #include "ViewsManager.hpp"
 #include "ReplicasInfo.hpp"
 #include "messages/PrePrepareMsg.hpp"
@@ -27,6 +28,8 @@
 
 namespace bftEngine {
 namespace impl {
+
+using concord::util::Digest;
 
 bool ViewsManager::PrevViewInfo::equals(const PrevViewInfo& other) const {
   if (other.hasAllRequests != hasAllRequests) return false;
@@ -643,14 +646,15 @@ bool ViewsManager::tryToEnterView(ViewNum v,
         LOG_DEBUG(
             VC_LOG,
             "Seqnum=" << i << ", isNull=" << static_cast<int>(restrictionsOfPendingView[idx].isNull)
-                      << ", digestPrefix=" << *reinterpret_cast<int*>(restrictionsOfPendingView[idx].digest.content())
+                      << ", digestPrefix="
+                      << *reinterpret_cast<int*>(const_cast<char*>(restrictionsOfPendingView[idx].digest.content()))
                       << (bHasPP ? " ." : ", PP=null ."));
         if (bHasPP) {
-          LOG_DEBUG(
-              VC_LOG,
-              "PP seq=" << prePrepareMsgsOfRestrictions[idx]->seqNumber() << ", digestPrefix="
-                        << *reinterpret_cast<int*>(prePrepareMsgsOfRestrictions[idx]->digestOfRequests().content())
-                        << " .");
+          LOG_DEBUG(VC_LOG,
+                    "PP seq=" << prePrepareMsgsOfRestrictions[idx]->seqNumber() << ", digestPrefix="
+                              << *reinterpret_cast<int*>(
+                                     const_cast<char*>(prePrepareMsgsOfRestrictions[idx]->digestOfRequests().content()))
+                              << " .");
         }
       }
       LOG_INFO(VC_LOG,

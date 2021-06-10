@@ -80,7 +80,7 @@ void PartialProofsSet::addSelfMsgAndPPDigest(PartialCommitProofMsg* m, Digest& d
   // NOTE: Accumulator might not be created yet, but the thresholdAccumulator() method creates it for us transparently
   // if needed
   thresholdAccumulator(m->commitPath())
-      ->setExpectedDigest(reinterpret_cast<unsigned char*>(digest.content()), DIGEST_SIZE);
+      ->setExpectedDigest(reinterpret_cast<const unsigned char*>(digest.content()), DIGEST_SIZE);
   selfPartialCommitProof = m;
 
   addImp(m, m->commitPath());

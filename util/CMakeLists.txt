@@ -11,7 +11,9 @@ set(util_source_files
     src/hex_tools.cpp
     src/OpenTracing.cpp
     src/throughput.cpp
-        src/openssl_crypto.cpp)
+    src/openssl_crypto.cpp
+    src/digest.cpp
+    src/digestutils.cpp)
 
 add_library(util STATIC
     ${util_source_files}
@@ -31,6 +33,18 @@ target_include_directories(util PUBLIC include)
 
 target_link_libraries(util_shared PUBLIC Threads::Threads ${OPENSSL_LIBRARIES})
 target_include_directories(util_shared PUBLIC include)
+
+find_package(cryptopp REQUIRED)
+
+target_compile_options(util PUBLIC "-Wno-extra-semi" "-Wno-undefined-var-template")
+target_compile_options(util_shared PUBLIC "-Wno-extra-semi" "-Wno-undefined-var-template")
+
+target_link_libraries(util PUBLIC ${CRYPTOPP_LIBRARIES})
+target_link_libraries(util_shared PUBLIC ${CRYPTOPP_LIBRARIES})
+
+target_include_directories(util PUBLIC ${CRYPTOPP_INCLUDE_DIRS})
+target_include_directories(util_shared PUBLIC ${CRYPTOPP_INCLUDE_DIRS})
+
 
 if (USE_OPENTRACING)
   if (NOT DEFINED OPENTRACING_INCLUDE_DIR)
@@ -60,7 +74,10 @@ set(util_header_files
     include/sliver.hpp
     include/status.hpp
     include/string.hpp
-        include/openssl_crypto.hpp)
+    include/openssl_crypto.hpp)
+    include/digesttype.hpp
+    include/digest.hpp
+    include/digestutils.hpp)
 install(FILES ${util_header_files} DESTINATION include/util)
 
 set_property(DIRECTORY .. APPEND PROPERTY INCLUDE_DIRECTORIES

@@ -16,11 +16,13 @@
 #include <set>
 #include <memory>
 #include "PrimitiveTypes.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "TimeUtils.hpp"
 
 class IThresholdVerifier;
 class IThresholdAccumulator;
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {

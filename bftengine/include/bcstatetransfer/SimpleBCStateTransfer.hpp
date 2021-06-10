@@ -21,6 +21,9 @@
 #include "bftengine/IStateTransfer.hpp"
 #include "Metrics.hpp"
 #include "kvstream.h"
+#include "digest.hpp"
+
+using concord::util::BLOCK_DIGEST_SIZE;
 
 namespace concord {
 namespace storage {
@@ -43,7 +46,6 @@ namespace bcst {
 // The application/storage layer is responsible to store the digests in the
 // blocks.
 // Blocks are numbered. The first block should be block number 1.
-inline constexpr std::uint32_t BLOCK_DIGEST_SIZE = 32;
 
 // represnts a digest
 #pragma pack(push, 1)
@@ -51,16 +53,6 @@ struct StateTransferDigest {
   char content[BLOCK_DIGEST_SIZE];
 };
 #pragma pack(pop)
-
-// This method should be used to compute block digests
-void computeBlockDigest(const uint64_t blockId,
-                        const char *block,
-                        const uint32_t blockSize,
-                        StateTransferDigest *outDigest);
-
-std::array<std::uint8_t, BLOCK_DIGEST_SIZE> computeBlockDigest(const uint64_t blockId,
-                                                               const char *block,
-                                                               const uint32_t blockSize);
 
 // This interface should be implemented by the application/storage layer.
 // It is used by the state transfer module.

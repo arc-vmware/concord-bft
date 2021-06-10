@@ -19,6 +19,7 @@
 #pragma GCC diagnostic pop
 
 #include "Crypto.hpp"
+#include "digestutils.hpp"
 
 #define VERIFY(exp)                                                                                            \
   {                                                                                                            \
@@ -30,22 +31,12 @@
     }                                                                                                          \
   }
 
-#include "DigestType.h"
 #include <cryptopp/cryptlib.h>
 #include "cryptopp/ida.h"
 #include <cryptopp/eccrypto.h>
 
 using namespace CryptoPP;
 using namespace std;
-
-#if defined MD5_DIGEST
-#include <cryptopp/md5.h>
-#define DigestType Weak1::MD5
-#elif defined SHA256_DIGEST
-#define DigestType SHA256
-#elif defined SHA512_DIGEST
-#define DigestType SHA512
-#endif
 
 // TODO(GG): TBD
 #include <iostream>
@@ -57,6 +48,8 @@ namespace impl {
 #define RSA_STANDARD OAEP<SHA256>
 //#define RSA_STANDARD PKCS1v15
 //#define RSA_STANDARD OAEP<SHA>
+
+using concord::util::DigestUtil;
 
 static RandomPool sGlobalRandGen;  // not thread-safe !!
 
@@ -86,59 +79,6 @@ void convert(const Integer& in, string& out) {
 void convert(const string& in, Integer& out) {
   StringSource strSrc(in, true, new HexDecoder);
   out = Integer(strSrc);
-}
-
-size_t DigestUtil::digestLength() { return DigestType::DIGESTSIZE; }
-
-bool DigestUtil::compute(const char* input,
-                         size_t inputLength,
-                         char* outBufferForDigest,
-                         size_t lengthOfBufferForDigest) {
-  DigestType dig;
-
-  size_t size = dig.DigestSize();
-
-  if (lengthOfBufferForDigest < size) return false;
-
-  SecByteBlock digest(size);
-
-  dig.Update((CryptoPP::byte*)input, inputLength);
-  dig.Final(digest);
-  const CryptoPP::byte* h = digest;
-  memcpy(outBufferForDigest, h, size);
-
-  return true;
-}
-
-DigestUtil::Context::Context() {
-  DigestType* p = new DigestType();
-  internalState = p;
-}
-
-void DigestUtil::Context::update(const char* data, size_t len) {
-  VERIFY(internalState != NULL);
-  DigestType* p = (DigestType*)internalState;
-  p->Update((CryptoPP::byte*)data, len);
-}
-
-void DigestUtil::Context::writeDigest(char* outDigest) {
-  VERIFY(internalState != NULL);
-  DigestType* p = (DigestType*)internalState;
-  SecByteBlock digest(digestLength());
-  p->Final(digest);
-  const CryptoPP::byte* h = digest;
-  memcpy(outDigest, h, digestLength());
-
-  delete p;
-  internalState = NULL;
-}
-
-DigestUtil::Context::~Context() {
-  if (internalState != NULL) {
-    DigestType* p = (DigestType*)internalState;
-    delete p;
-    internalState = NULL;
-  }
 }
 
 class ECDSASigner::Impl {

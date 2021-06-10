@@ -18,7 +18,7 @@
 
 #include "OpenTracing.hpp"
 #include "PrimitiveTypes.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "Crypto.hpp"
 #include "SimpleThreadPool.hpp"
 #include "IncomingMsgsStorage.hpp"
@@ -27,6 +27,8 @@
 #include "Logger.hpp"
 #include "kvstream.h"
 #include "demangle.hpp"
+
+using concord::util::Digest;
 
 namespace bftEngine {
 namespace impl {
@@ -387,7 +389,7 @@ class CollectorOfThresholdSignatures {
 
         for (uint16_t i = 0; i < reqDataItems; i++) acc->add(sigDataItems[i].sigBody, sigDataItems[i].sigLength);
 
-        acc->setExpectedDigest(reinterpret_cast<unsigned char*>(expectedDigest.content()), DIGEST_SIZE);
+        acc->setExpectedDigest(reinterpret_cast<const unsigned char*>(expectedDigest.content()), DIGEST_SIZE);
 
         acc->getFullSignedData(bufferForSigComputations.data(), bufferSize);
 
@@ -402,7 +404,7 @@ class CollectorOfThresholdSignatures {
         // TODO(GG): A clumsy way to do verification - find a better way ....
 
         auto accWithVer = verifier->newAccumulator(true);
-        accWithVer->setExpectedDigest(reinterpret_cast<unsigned char*>(expectedDigest.content()), DIGEST_SIZE);
+        accWithVer->setExpectedDigest(reinterpret_cast<const unsigned char*>(expectedDigest.content()), DIGEST_SIZE);
 
         uint16_t currNumOfValidShares = 0;
         for (uint16_t i = 0; i < reqDataItems; i++) {

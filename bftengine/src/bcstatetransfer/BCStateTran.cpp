@@ -24,10 +24,10 @@
 #include "assertUtils.hpp"
 #include "hex_tools.h"
 #include "BCStateTran.hpp"
-#include "STDigest.hpp"
 #include "InMemoryDataStore.hpp"
 #include "json_output.hpp"
 #include "ReservedPagesClient.hpp"
+#include "digestutils.hpp"
 
 #include "DBDataStore.hpp"
 #include "storage/db_interface.h"
@@ -47,22 +47,11 @@ using std::chrono::milliseconds;
 using std::chrono::time_point;
 using std::chrono::system_clock;
 using namespace std::placeholders;
+using concord::util::DigestContext;
+using concord::util::DigestUtil;
 
 namespace bftEngine {
 namespace bcst {
-
-void computeBlockDigest(const uint64_t blockId,
-                        const char *block,
-                        const uint32_t blockSize,
-                        StateTransferDigest *outDigest) {
-  return impl::BCStateTran::computeDigestOfBlock(blockId, block, blockSize, (impl::STDigest *)outDigest);
-}
-
-std::array<std::uint8_t, BLOCK_DIGEST_SIZE> computeBlockDigest(const uint64_t blockId,
-                                                               const char *block,
-                                                               const uint32_t blockSize) {
-  return impl::BCStateTran::computeDigestOfBlock(blockId, block, blockSize);
-}
 
 IStateTransfer *create(const Config &config,
                        IAppState *const stateApi,
@@ -397,12 +386,12 @@ bool BCStateTran::isRunning() const { return running_; }
 // This has the side effect of filling in buffer_ with the last block of app
 // data.
 DataStore::CheckpointDesc BCStateTran::createCheckpointDesc(uint64_t checkpointNumber,
-                                                            const STDigest &digestOfResPagesDescriptor) {
+                                                            const Digest &digestOfResPagesDescriptor) {
   uint64_t lastBlock = as_->getLastReachableBlockNum();
   ConcordAssertEQ(lastBlock, as_->getLastBlockNum());
   metrics_.last_block_.Get().Set(lastBlock);
 
-  STDigest digestOfLastBlock;
+  Digest digestOfLastBlock;
 
   if (lastBlock > 0) {
     digestOfLastBlock = getBlockAndComputeDigest(lastBlock);
@@ -427,14 +416,14 @@ DataStore::CheckpointDesc BCStateTran::createCheckpointDesc(uint64_t checkpointN
 // Return the digest of all the reserved pages descriptor.
 //
 // This has the side effect of mutating buffer_.
-STDigest BCStateTran::checkpointReservedPages(uint64_t checkpointNumber, DataStoreTransaction *txn) {
+Digest BCStateTran::checkpointReservedPages(uint64_t checkpointNumber, DataStoreTransaction *txn) {
   set<uint32_t> pages = txn->getNumbersOfPendingResPages();
   auto numberOfPagesInCheckpoint = pages.size();
   LOG_INFO(getLogger(),
            "Associating pending pages with checkpoint: " << KVLOG(numberOfPagesInCheckpoint, checkpointNumber));
   std::unique_ptr<char[]> buffer(new char[config_.sizeOfReservedPage]);
   for (uint32_t p : pages) {
-    STDigest d;
+    Digest d;
     txn->getPendingResPage(p, buffer.get(), config_.sizeOfReservedPage);
     computeDigestOfPage(p, checkpointNumber, buffer.get(), config_.sizeOfReservedPage, d);
     txn->associatePendingResPageWithCheckpoint(p, checkpointNumber, d);
@@ -444,7 +433,7 @@ STDigest BCStateTran::checkpointReservedPages(uint64_t checkpointNumber, DataSto
   DataStore::ResPagesDescriptor *allPagesDesc = txn->getResPagesDescriptor(checkpointNumber);
   ConcordAssertEQ(allPagesDesc->numOfPages, numberOfReservedPages_);
 
-  STDigest digestOfResPagesDescriptor;
+  Digest digestOfResPagesDescriptor;
   computeDigestOfPagesDescriptor(allPagesDesc, digestOfResPagesDescriptor);
 
   LOG_INFO(getLogger(), allPagesDesc->toString(digestOfResPagesDescriptor.toString()));
@@ -525,14 +514,14 @@ void BCStateTran::markCheckpointAsStable(uint64_t checkpointNumber) {
 
 void BCStateTran::getDigestOfCheckpoint(uint64_t checkpointNumber, uint16_t sizeOfDigestBuffer, char *outDigestBuffer) {
   ConcordAssert(running_);
-  ConcordAssertGE(sizeOfDigestBuffer, sizeof(STDigest));
+  ConcordAssertGE(sizeOfDigestBuffer, sizeof(Digest));
   ConcordAssertGT(checkpointNumber, 0);
   ConcordAssertGE(checkpointNumber, psd_->getFirstStoredCheckpoint());
   ConcordAssertLE(checkpointNumber, psd_->getLastStoredCheckpoint());
   ConcordAssert(psd_->hasCheckpointDesc(checkpointNumber));
 
   DataStore::CheckpointDesc desc = psd_->getCheckpointDesc(checkpointNumber);
-  STDigest checkpointDigest;
+  Digest checkpointDigest;
   DigestContext c;
   c.update(reinterpret_cast<char *>(&desc), sizeof(desc));
   c.writeDigest(checkpointDigest.getForUpdate());
@@ -540,8 +529,8 @@ void BCStateTran::getDigestOfCheckpoint(uint64_t checkpointNumber, uint16_t size
   LOG_INFO(getLogger(),
            KVLOG(desc.checkpointNum, desc.digestOfLastBlock, desc.digestOfResPagesDescriptor, checkpointDigest));
 
-  uint16_t s = std::min((uint16_t)sizeof(STDigest), sizeOfDigestBuffer);
-  memcpy(outDigestBuffer, checkpointDigest.get(), s);
+  uint16_t s = std::min((uint16_t)sizeof(Digest), sizeOfDigestBuffer);
+  memcpy(outDigestBuffer, checkpointDigest.content(), s);
   if (s < sizeOfDigestBuffer) {
     memset(outDigestBuffer + s, 0, sizeOfDigestBuffer - s);
   }
@@ -783,7 +772,7 @@ struct HeaderOfVirtualBlock {
 struct ElementOfVirtualBlock {
   uint32_t pageId;
   uint64_t checkpointNumber;
-  STDigest pageDigest;
+  Digest pageDigest;
   char page[1];  // the actual size is sizeOfReservedPage_ bytes
 };
 #pragma pack(pop)
@@ -1726,7 +1715,7 @@ char *BCStateTran::createVBlock(const DescOfVBlockForResPages &desc) {
     ConcordAssertLT(idx, numberOfUpdatedPages);
 
     uint64_t actualPageCheckpoint = 0;
-    STDigest pageDigest;
+    Digest pageDigest;
     psd_->getResPage(
         pageId, desc.checkpointNum, &actualPageCheckpoint, &pageDigest, buffer.get(), config_.sizeOfReservedPage);
     ConcordAssertLE(actualPageCheckpoint, desc.checkpointNum);
@@ -1910,11 +1899,11 @@ bool BCStateTran::getNextFullBlock(uint64_t requiredBlock,
 }
 
 bool BCStateTran::checkBlock(uint64_t blockNum,
-                             const STDigest &expectedBlockDigest,
+                             const Digest &expectedBlockDigest,
                              char *block,
                              uint32_t blockSize) const {
-  STDigest blockDigest;
-  computeDigestOfBlock(blockNum, block, blockSize, &blockDigest);
+  Digest blockDigest;
+  DigestUtil::computeBlockDigest(blockNum, block, blockSize, &blockDigest);
 
   if (blockDigest != expectedBlockDigest) {
     LOG_WARN(getLogger(), "Incorrect digest: " << KVLOG(blockNum, blockDigest, expectedBlockDigest));
@@ -1924,7 +1913,7 @@ bool BCStateTran::checkBlock(uint64_t blockNum,
   }
 }
 
-bool BCStateTran::checkVirtualBlockOfResPages(const STDigest &expectedDigestOfResPagesDescriptor,
+bool BCStateTran::checkVirtualBlockOfResPages(const Digest &expectedDigestOfResPagesDescriptor,
                                               char *vblock,
                                               uint32_t vblockSize) const {
   if (!checkStructureOfVirtualBlock(vblock, vblockSize, config_.sizeOfReservedPage)) {
@@ -1951,7 +1940,7 @@ bool BCStateTran::checkVirtualBlockOfResPages(const STDigest &expectedDigestOfRe
     ElementOfVirtualBlock *vElement = getVirtualElement(element, config_.sizeOfReservedPage, vblock);
     LOG_TRACE(getLogger(), KVLOG(element, vElement->pageId, vElement->checkpointNumber, vElement->pageDigest));
 
-    STDigest computedPageDigest;
+    Digest computedPageDigest;
     computeDigestOfPage(
         vElement->pageId, vElement->checkpointNumber, vElement->page, config_.sizeOfReservedPage, computedPageDigest);
     if (computedPageDigest != vElement->pageDigest) {
@@ -1965,7 +1954,7 @@ bool BCStateTran::checkVirtualBlockOfResPages(const STDigest &expectedDigestOfRe
     pagesDesc->d[vElement->pageId].pageDigest = vElement->pageDigest;
   }
 
-  STDigest computedDigest;
+  Digest computedDigest;
   computeDigestOfPagesDescriptor(pagesDesc, computedDigest);
   LOG_INFO(getLogger(), pagesDesc->toString(computedDigest.toString()));
   psd_->free(pagesDesc);
@@ -2381,7 +2370,7 @@ void BCStateTran::checkReachableBlocks(uint64_t genesisBlockNum, uint64_t lastRe
     for (uint64_t currBlock = lastReachableBlockNum - 1; currBlock >= genesisBlockNum; currBlock--) {
       auto currDigest = getBlockAndComputeDigest(currBlock);
       ConcordAssert(!currDigest.isZero());
-      STDigest prevFromNextBlockDigest;
+      Digest prevFromNextBlockDigest;
       prevFromNextBlockDigest.makeZero();
       as_->getPrevDigestFromBlock(currBlock + 1, reinterpret_cast<StateTransferDigest *>(&prevFromNextBlockDigest));
       ConcordAssertEQ(currDigest, prevFromNextBlockDigest);
@@ -2419,7 +2408,7 @@ void BCStateTran::checkBlocksBeingFetchedNow(bool checkAllBlocks,
         auto currDigest = getBlockAndComputeDigest(currBlock);
         ConcordAssert(!currDigest.isZero());
 
-        STDigest prevFromNextBlockDigest;
+        Digest prevFromNextBlockDigest;
         prevFromNextBlockDigest.makeZero();
         as_->getPrevDigestFromBlock(currBlock + 1, reinterpret_cast<StateTransferDigest *>(&prevFromNextBlockDigest));
         ConcordAssertEQ(currDigest, prevFromNextBlockDigest);
@@ -2457,7 +2446,7 @@ void BCStateTran::checkStoredCheckpoints(uint64_t firstStoredCheckpoint, uint64_
         DataStore::ResPagesDescriptor *allPagesDesc = psd_->getResPagesDescriptor(chkp);
         ConcordAssertEQ(allPagesDesc->numOfPages, numberOfReservedPages_);
         {
-          STDigest computedDigestOfResPagesDescriptor;
+          Digest computedDigestOfResPagesDescriptor;
           computeDigestOfPagesDescriptor(allPagesDesc, computedDigestOfResPagesDescriptor);
           LOG_INFO(getLogger(), allPagesDesc->toString(computedDigestOfResPagesDescriptor.toString()));
           ConcordAssertEQ(computedDigestOfResPagesDescriptor, desc.digestOfResPagesDescriptor);
@@ -2473,7 +2462,7 @@ void BCStateTran::checkStoredCheckpoints(uint64_t firstStoredCheckpoint, uint64_
           ConcordAssertGT(allPagesDesc->d[pageId].relevantCheckpoint, 0);
           ConcordAssertEQ(allPagesDesc->d[pageId].relevantCheckpoint, actualCheckpoint);
 
-          STDigest computedDigestOfPage;
+          Digest computedDigestOfPage;
           computeDigestOfPage(pageId, actualCheckpoint, buffer.get(), config_.sizeOfReservedPage, computedDigestOfPage);
           ConcordAssertEQ(computedDigestOfPage, allPagesDesc->d[pageId].pageDigest);
         }
@@ -2488,7 +2477,7 @@ void BCStateTran::checkStoredCheckpoints(uint64_t firstStoredCheckpoint, uint64_
 ///////////////////////////////////////////////////////////////////////////
 
 void BCStateTran::computeDigestOfPage(
-    const uint32_t pageId, const uint64_t checkpointNumber, const char *page, uint32_t pageSize, STDigest &outDigest) {
+    const uint32_t pageId, const uint64_t checkpointNumber, const char *page, uint32_t pageSize, Digest &outDigest) {
   DigestContext c;
   c.update(reinterpret_cast<const char *>(&pageId), sizeof(pageId));
   c.update(reinterpret_cast<const char *>(&checkpointNumber), sizeof(checkpointNumber));
@@ -2496,54 +2485,21 @@ void BCStateTran::computeDigestOfPage(
   c.writeDigest(reinterpret_cast<char *>(&outDigest));
 }
 
-void BCStateTran::computeDigestOfPagesDescriptor(const DataStore::ResPagesDescriptor *pagesDesc, STDigest &outDigest) {
+void BCStateTran::computeDigestOfPagesDescriptor(const DataStore::ResPagesDescriptor *pagesDesc, Digest &outDigest) {
   DigestContext c;
   c.update(reinterpret_cast<const char *>(pagesDesc), pagesDesc->size());
   c.writeDigest(reinterpret_cast<char *>(&outDigest));
 }
 
-static void computeDigestOfBlockImpl(const uint64_t blockNum,
-                                     const char *block,
-                                     const uint32_t blockSize,
-                                     char *outDigest) {
-  ConcordAssertGT(blockNum, 0);
-  ConcordAssertGT(blockSize, 0);
-  DigestContext c;
-  c.update(reinterpret_cast<const char *>(&blockNum), sizeof(blockNum));
-  c.update(block, blockSize);
-  c.writeDigest(outDigest);
-}
-
-void BCStateTran::computeDigestOfBlock(const uint64_t blockNum,
-                                       const char *block,
-                                       const uint32_t blockSize,
-                                       STDigest *outDigest) {
-  /*
-  // for debug (the digest will be the block number)
-  memset(outDigest, 0, sizeof(STDigest));
-  uint64_t* p = (uint64_t*)outDigest;
-  *p = blockNum;
-  */
-  computeDigestOfBlockImpl(blockNum, block, blockSize, reinterpret_cast<char *>(outDigest));
-}
-
-std::array<std::uint8_t, BLOCK_DIGEST_SIZE> BCStateTran::computeDigestOfBlock(const uint64_t blockNum,
-                                                                              const char *block,
-                                                                              const uint32_t blockSize) {
-  std::array<std::uint8_t, BLOCK_DIGEST_SIZE> outDigest;
-  computeDigestOfBlockImpl(blockNum, block, blockSize, reinterpret_cast<char *>(outDigest.data()));
-  return outDigest;
-}
-
-STDigest BCStateTran::getBlockAndComputeDigest(uint64_t currBlock) {
+Digest BCStateTran::getBlockAndComputeDigest(uint64_t currBlock) {
   // This function is called among others during checkpointing of current state,
   // which can occur while this replica is a source replica.
   // In order to make it thread safe, instead of using buffer_, a local buffer is allocated .
   static std::unique_ptr<char[]> buffer(new char[maxItemSize_]);
-  STDigest currDigest;
+  Digest currDigest;
   uint32_t blockSize = 0;
   as_->getBlock(currBlock, buffer.get(), &blockSize);
-  computeDigestOfBlock(currBlock, buffer.get(), blockSize, &currDigest);
+  DigestUtil::computeBlockDigest(currBlock, buffer.get(), blockSize, &currDigest);
   return currDigest;
 }
 

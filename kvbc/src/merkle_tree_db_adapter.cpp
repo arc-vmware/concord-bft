@@ -11,7 +11,7 @@
 // terms and conditions of the subcomponent's license, as noted in the LICENSE
 // file.
 
-#include "bcstatetransfer/SimpleBCStateTransfer.hpp"
+#include "digestutils.hpp"
 #include "merkle_tree_db_adapter.h"
 #include "merkle_tree_key_manipulator.h"
 #include "merkle_tree_serialization.h"
@@ -42,7 +42,7 @@ using ::concord::storage::v2MerkleTree::detail::EDBKeyType;
 using ::concord::storage::v2MerkleTree::detail::EKeySubtype;
 using ::concord::storage::v2MerkleTree::detail::EBFTSubtype;
 
-using ::bftEngine::bcst::computeBlockDigest;
+using concord::util::DigestUtil;
 
 using sparse_merkle::BatchedInternalNode;
 using sparse_merkle::Hasher;
@@ -353,7 +353,7 @@ std::future<BlockDigest> DBAdapter::computeParentBlockDigest(BlockId blockId) co
       histograms.dba_hashed_parent_block_size->recordAtomic(parentBlock->length());
       static constexpr bool is_atomic = true;
       TimeRecorder<is_atomic> scoped(*histograms.dba_hash_parent_block);
-      parentBlockDigest = computeBlockDigest(blockId - 1, parentBlock->data(), parentBlock->length());
+      parentBlockDigest = DigestUtil::computeBlockDigest(blockId - 1, parentBlock->data(), parentBlock->length());
     }
     return parentBlockDigest;
   });

@@ -5,7 +5,6 @@ add_subdirectory(src/preprocessor)
 set(corebft_source_files
     src/bftengine/PrimitiveTypes.cpp
     src/bftengine/DebugStatistics.cpp
-    src/bftengine/Digest.cpp
     src/bftengine/SeqNumInfo.cpp
     src/bftengine/ReadOnlyReplica.cpp
     src/bftengine/ReplicaBase.cpp
@@ -38,7 +37,6 @@ set(corebft_source_files
     src/bftengine/ReplicaStatusHandlers.cpp
     src/bcstatetransfer/BCStateTran.cpp
     src/bcstatetransfer/InMemoryDataStore.cpp
-    src/bcstatetransfer/STDigest.cpp
     src/bcstatetransfer/DBDataStore.cpp
     src/bcstatetransfer/SourceSelector.cpp
     src/simplestatetransfer/SimpleStateTran.cpp

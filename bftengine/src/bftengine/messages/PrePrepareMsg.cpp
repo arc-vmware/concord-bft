@@ -16,6 +16,9 @@
 #include "Crypto.hpp"
 #include "ClientRequestMsg.hpp"
 #include "SigManager.hpp"
+#include "digestutils.hpp"
+
+using concord::util::DigestUtil;
 
 namespace bftEngine {
 namespace impl {

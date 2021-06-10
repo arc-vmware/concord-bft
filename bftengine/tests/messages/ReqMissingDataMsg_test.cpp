@@ -20,11 +20,12 @@
 #include "bftengine/ClientMsgs.hpp"
 #include "bftengine/ClientMsgs.hpp"
 #include "bftengine/ReplicaConfig.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "helper.hpp"
 
 using namespace bftEngine;
 using namespace bftEngine::impl;
+using concord::util::Digest;
 
 TEST(ReqMissingDataMsg, base_methods) {
   ReplicasInfo replicaInfo(createReplicaConfig(), false, false);

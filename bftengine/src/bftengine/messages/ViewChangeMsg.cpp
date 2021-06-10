@@ -14,13 +14,15 @@
 
 #include "assertUtils.hpp"
 #include "ViewChangeMsg.hpp"
-#include "Crypto.hpp"
+#include "digestutils.hpp"
 #include "ViewsManager.hpp"
 #include "Logger.hpp"
 #include "SigManager.hpp"
 
 namespace bftEngine {
 namespace impl {
+
+using concord::util::DigestUtil;
 
 ViewChangeMsg::ViewChangeMsg(ReplicaId srcReplicaId,
                              ViewNum newView,

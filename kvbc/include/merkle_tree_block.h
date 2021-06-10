@@ -12,6 +12,8 @@
 
 namespace concord::kvbc::v2MerkleTree::block::detail {
 
+using concord::util::BLOCK_DIGEST_SIZE;
+
 // Creates a block that adds a set of key/values.
 RawBlock create(const SetOfKeyValuePairs &updates,
                 const BlockDigest &parentDigest,

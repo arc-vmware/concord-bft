@@ -25,6 +25,7 @@
 #include "diagnostics.h"
 #include "TimeUtils.hpp"
 #include "json_output.hpp"
+#include "digest.hpp"
 
 #include "messages/ClientRequestMsg.hpp"
 #include "messages/PrePrepareMsg.hpp"
@@ -58,6 +59,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace std::placeholders;
 using namespace concord::diagnostics;
+using concord::util::Digest;
 
 namespace bftEngine::impl {
 

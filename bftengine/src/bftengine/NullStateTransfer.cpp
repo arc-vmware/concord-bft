@@ -11,12 +11,17 @@
 
 #include "NullStateTransfer.hpp"
 #include "assertUtils.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
+#include "digestutils.hpp"
 #include "Logger.hpp"
 #include "Crypto.hpp"
 
 namespace bftEngine {
 namespace impl {
+
+using concord::util::Digest;
+using concord::util::DigestUtil;
+
 void NullStateTransfer::init(uint64_t maxNumOfRequiredStoredCheckpoints,
                              uint32_t numberOfRequiredReservedPages,
                              uint32_t sizeOfReservedPage) {

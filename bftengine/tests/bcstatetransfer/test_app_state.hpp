@@ -16,11 +16,12 @@
 #include <cassert>
 #include <cstring>
 #include <unordered_map>
-#include "SimpleBCStateTransfer.hpp"
+#include "digestutils.hpp"
 
 // This should be the same as test config
 const uint32_t kMaxBlockSize = 1024;
-
+using concord::util::DigestUtil;
+using concord::util::Digest;
 namespace bftEngine {
 
 namespace bcst {
@@ -57,7 +58,7 @@ class TestAppState : public IAppState {
   bool putBlock(const uint64_t blockId, const char* block, const uint32_t blockSize) override {
     ConcordAssert(blockId < last_block_);
     Block bl;
-    computeBlockDigest(blockId, block, blockSize, &bl.digest);
+    DigestUtil::computeBlockDigest(blockId, block, blockSize, reinterpret_cast<Digest*>(&bl.digest));
     memcpy(&bl.block, block, blockSize);
     bl.actualSize = blockSize;
     last_block_ = blockId;

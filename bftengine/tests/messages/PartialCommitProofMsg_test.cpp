@@ -21,7 +21,7 @@
 #include "bftengine/ClientMsgs.hpp"
 #include "bftengine/ClientMsgs.hpp"
 #include "bftengine/ReplicaConfig.hpp"
-#include "Digest.hpp"
+#include "digest.hpp"
 #include "helper.hpp"
 
 using namespace bftEngine;

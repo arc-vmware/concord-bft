@@ -2,15 +2,9 @@
 
 #pragma once
 
-#include "bcstatetransfer/SimpleBCStateTransfer.hpp"
+#include "digest.hpp"
+#include "digestutils.hpp"
 
-#include <array>
-#include <cstdint>
+using concord::util::BLOCK_DIGEST_SIZE;
 
-namespace concord::kvbc {
-
-inline constexpr auto BLOCK_DIGEST_SIZE = bftEngine::bcst::BLOCK_DIGEST_SIZE;
-
-using BlockDigest = std::array<std::uint8_t, BLOCK_DIGEST_SIZE>;
-
-}  // namespace concord::kvbc
+using BlockDigest = concord::util::digest_t;

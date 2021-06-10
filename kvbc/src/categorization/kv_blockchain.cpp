@@ -12,7 +12,6 @@
 // file.
 
 #include "categorization/kv_blockchain.h"
-#include "bcstatetransfer/SimpleBCStateTransfer.hpp"
 #include "bftengine/ControlStateManager.hpp"
 #include "json_output.hpp"
 #include "diagnostics.h"
@@ -22,7 +21,7 @@
 
 namespace concord::kvbc::categorization {
 
-using ::bftEngine::bcst::computeBlockDigest;
+using concord::util::DigestUtil;
 using concordUtils::toPair;
 
 template <typename T>
@@ -217,8 +216,8 @@ std::future<BlockDigest> KeyValueBlockchain::computeParentBlockDigest(const Bloc
           // TimeRecorder<is_atomic> scoped(*histograms.dba_hash_parent_block);
 
           const auto& raw_buffer = detail::serialize(cached_raw_block.second.value());
-          parent_block_digest =
-              computeBlockDigest(parent_block_id, reinterpret_cast<const char*>(raw_buffer.data()), raw_buffer.size());
+          parent_block_digest = DigestUtil::computeBlockDigest(
+              parent_block_id, reinterpret_cast<const char*>(raw_buffer.data()), raw_buffer.size());
         }
         return parent_block_digest;
       },
