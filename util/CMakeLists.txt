@@ -74,7 +74,7 @@ set(util_header_files
     include/sliver.hpp
     include/status.hpp
     include/string.hpp
-    include/openssl_crypto.hpp)
+    include/openssl_crypto.hpp
     include/digesttype.hpp
     include/digest.hpp
     include/digestutils.hpp)

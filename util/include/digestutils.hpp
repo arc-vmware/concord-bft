@@ -28,12 +28,12 @@ using digest_t = std::array<std::uint8_t, BLOCK_DIGEST_SIZE>;
 class DigestContext {
  public:
   DigestContext();
-  void update(const char* data, size_t len);
-  void writeDigest(char* outDigest);  // write digest to outDigest, and invalidate the Context object
+  void update(const char *data, size_t len);
+  void writeDigest(char *outDigest);  // write digest to outDigest, and invalidate the Context object
   ~DigestContext();
 
  private:
-  void* internalState;
+  void *internalState;
 };
 
 class DigestUtil {
@@ -50,9 +50,7 @@ class DigestUtil {
                                  const uint32_t blockSize,
                                  Digest *outDigest);
 
-  static digest_t computeBlockDigest(const uint64_t blockId, 
-                                     const char *block, 
-                                     const uint32_t blockSize);
+  static digest_t computeBlockDigest(const uint64_t blockId, const char *block, const uint32_t blockSize);
 
   static size_t digestLength();
 
