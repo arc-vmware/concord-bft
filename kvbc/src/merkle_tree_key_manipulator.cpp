@@ -147,7 +147,13 @@ Version DBKeyManipulator::extractVersionFromInternalKey(const Key &key) {
 // Undefined behavior if an incorrect type is read from the buffer.
 EDBKeyType DBKeyManipulator::getDBKeyType(const Sliver &s) {
   ConcordAssert(!s.empty());
-
+  LOG_INFO(logger(),
+           "ARC CHK 01 : " << KVLOG(s[0],
+                                    s,
+                                    toChar(EDBKeyType::Block),
+                                    toChar(EDBKeyType::Key),
+                                    toChar(EDBKeyType::BFT),
+                                    toChar(EDBKeyType::Migration)));
   switch (s[0]) {
     case toChar(EDBKeyType::Block):
       return EDBKeyType::Block;
@@ -155,7 +161,10 @@ EDBKeyType DBKeyManipulator::getDBKeyType(const Sliver &s) {
       return EDBKeyType::Key;
     case toChar(EDBKeyType::BFT):
       return EDBKeyType::BFT;
+    case toChar(EDBKeyType::Migration):
+      return EDBKeyType::Migration;
   }
+
   ConcordAssert(false);
 
   // Dummy return to silence the compiler.

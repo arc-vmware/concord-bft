@@ -48,7 +48,7 @@ bool DBMetadataStorage::isNewStorage() {
 
 bool DBMetadataStorage::initMaxSizeOfObjects(ObjectDesc *metadataObjectsArray, uint32_t metadataObjectsArrayLength) {
   for (uint32_t i = objectsNumParameterId_ + 1; i < metadataObjectsArrayLength; ++i) {
-    objectIdToSizeMap_[i] = metadataObjectsArray[i].maxSize;
+    objectIdToSizeMap_.emplace(metadataObjectsArray[i].id, metadataObjectsArray[i].maxSize);
     LOG_TRACE(logger_,
               "initMaxSizeOfObjects i=" << i << " object data: id=" << metadataObjectsArray[i].id
                                         << ", maxSize=" << metadataObjectsArray[i].maxSize);

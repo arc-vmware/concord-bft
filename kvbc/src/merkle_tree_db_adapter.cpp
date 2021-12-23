@@ -232,9 +232,11 @@ BlockId DBAdapter::getLatestBlockId() const {
 BlockId DBAdapter::loadGenesisBlockId() const {
   auto iter = db_->getIteratorGuard();
   const auto key = iter->seekAtLeast(DBKeyManipulator::genBlockDbKey(INITIAL_GENESIS_BLOCK_ID)).first;
+  LOG_INFO(logger_, "ARC CHK 04 : " << KVLOG(key));
   if (!key.empty() && DBKeyManipulator::getDBKeyType(key) == EDBKeyType::Block) {
     return DBKeyManipulator::extractBlockIdFromKey(key);
   }
+  LOG_INFO(logger_, "ARC CHK 03 : No blocks in system");
   return 0;
 }
 
@@ -252,6 +254,7 @@ BlockId DBAdapter::loadLastReachableBlockId() const {
     return blockId;
   }
   // No blocks in the system.
+  LOG_INFO(logger_, "ARC CHK 02 : No blocks in system");
   return 0;
 }
 
