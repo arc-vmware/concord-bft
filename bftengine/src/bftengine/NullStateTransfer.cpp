@@ -65,7 +65,7 @@ void NullStateTransfer::getDigestOfCheckpoint(uint64_t checkpointNumber,
 
   Digest d;
   DigestGenerator digestGenerator;
-  digestGenerator.computeDigest((char*)&checkpointNumber, sizeof(checkpointNumber), (char*)&d, sizeof(d));
+  digestGenerator.compute((char*)&checkpointNumber, sizeof(checkpointNumber), (char*)&d, sizeof(d));
 
   memset(outStateDigest, 0, sizeOfDigestBuffer);
   memset(outFullStateDigest, 0, sizeOfDigestBuffer);
