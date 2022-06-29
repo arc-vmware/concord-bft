@@ -12,10 +12,17 @@
 
 #include "blockchain_misc.hpp"
 #include "storage/merkle_tree_key_manipulator.h"
+#include "categorization/blocks.h"
 
 namespace concord::kvbc {
 
 block_version BlockVersion::getBlockVersion(const concord::kvbc::RawBlock& raw_block_ser) {
+  try {
+    const auto rawBlock = concord::kvbc::categorization::RawBlock::deserialize(raw_block_ser);
+    return concord::kvbc::block_version::V1;
+  } catch (const std::runtime_error& re) {
+  }
+
   return getBlockVersion(raw_block_ser.data(), raw_block_ser.size());
 }
 block_version BlockVersion::getBlockVersion(const std::string_view& raw_block_ser) {
@@ -23,7 +30,15 @@ block_version BlockVersion::getBlockVersion(const std::string_view& raw_block_se
 }
 block_version BlockVersion::getBlockVersion(const char* raw_block_ser, size_t len) {
   ConcordAssertGE(len, BLOCK_VERSION_SIZE);
-  return *(reinterpret_cast<const block_version*>(raw_block_ser));
+  switch (*(reinterpret_cast<const block_version*>(raw_block_ser))) {
+    case block_version::V1:
+      return block_version::V1;
+    case block_version::V4:
+      return block_version::V4;
+  }
+  LOG_FATAL(GL, "Version is not valid.");
+  ConcordAssert(false);
+  return block_version::V1;
 }
 
 namespace bcutil {

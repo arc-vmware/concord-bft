@@ -42,15 +42,17 @@ int BookKeeper::migrate(int argc, char* argv[]) {
 void BookKeeper::initialize_migration() {
   number_of_batches_allowed_in_cycle_ = config_["max-point-lookup-batches"].as<std::uint64_t>();
   const auto read_only = true;
+  const auto link_st_chain = true;
   const auto migrate_to_v4 = config_["migrate-to-v4"].as<bool>();
 
   auto rodb = NativeClient::newClient(
       config_["input-rocksdb-path"].as<std::string>(), read_only, NativeClient::DefaultOptions{});
   auto wodb = NativeClient::newClient(
       config_["output-rocksdb-path"].as<std::string>(), !read_only, NativeClient::DefaultOptions{});
-  v4_kvbc_ = std::make_shared<BlockchainAdapter<concord::kvbc::V4_BLOCKCHAIN>>(migrate_to_v4 ? wodb : rodb, false);
-  cat_kvbc_ =
-      std::make_shared<BlockchainAdapter<concord::kvbc::CATEGORIZED_BLOCKCHAIN>>(migrate_to_v4 ? rodb : wodb, false);
+  v4_kvbc_ =
+      std::make_shared<BlockchainAdapter<concord::kvbc::V4_BLOCKCHAIN>>(migrate_to_v4 ? wodb : rodb, link_st_chain);
+  cat_kvbc_ = std::make_shared<BlockchainAdapter<concord::kvbc::CATEGORIZED_BLOCKCHAIN>>(migrate_to_v4 ? rodb : wodb,
+                                                                                         link_st_chain);
   single_batch_ = std::make_shared<decltype(single_batch_)::element_type>();
   storage_thread_ = std::make_unique<std::thread>([this, migrate_to_v4]() {
     if (migrate_to_v4) {
