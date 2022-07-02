@@ -46,12 +46,18 @@ def start_replica_cmd(builddir, replica_id, view_change_timeout_milli="10000"):
     # Decide from the environment if PreExecution result authentication feature should be enabled or not
     pre_exec_result_auth_enabled = os.environ.get("PRE_EXEC_RESULT_AUTH_ENABLED", default="False").lower() == "true"
 
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
+
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     return [path,
             "-k", KEY_FILE_PREFIX,
             "-i", str(replica_id),
             "-s", status_timer_milli,
             "-v", view_change_timeout_milli,
+            "-V", blockchain_version,
             "-x" if pre_exec_result_auth_enabled else ""
             ]
 

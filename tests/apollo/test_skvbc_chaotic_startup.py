@@ -32,12 +32,18 @@ def start_replica_cmd(builddir, replica_id, view_change_timeout_milli="10000"):
     Note each arguments is an element in a list.
     """
     statusTimerMilli = "500"
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
+
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     return [path,
             "-k", KEY_FILE_PREFIX,
             "-i", str(replica_id),
             "-s", statusTimerMilli,
-            "-v", view_change_timeout_milli
+            "-v", view_change_timeout_milli,
+            "-V", blockchain_version
             ]
 
 

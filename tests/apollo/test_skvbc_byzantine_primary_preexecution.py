@@ -38,12 +38,18 @@ def start_replica_cmd(builddir, replica_id, view_change_timeout_milli="10000"):
 
     status_timer_milli = "500"
 
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
+
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     cmd = [path,
            "-k", KEY_FILE_PREFIX,
            "-i", str(replica_id),
            "-s", status_timer_milli,
            "-v", view_change_timeout_milli,
+           "-V", blockchain_version,
            "-x"
            ]
     if replica_id == 0 :
@@ -62,12 +68,18 @@ def start_replica_cmd_asymmetric_communication(builddir, replica_id, view_change
 
     status_timer_milli = "500"
 
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
+
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     cmd = [path,
            "-k", KEY_FILE_PREFIX,
            "-i", str(replica_id),
            "-s", status_timer_milli,
            "-v", view_change_timeout_milli,
+           "-V", blockchain_version,
            "-x"
            ]
     if replica_id == 0 :

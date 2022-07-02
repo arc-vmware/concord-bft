@@ -76,6 +76,10 @@ def start_replica_cmd(builddir, replica_id):
     """
     statusTimerMilli = "500"
     viewChangeTimeoutMilli = "10000"
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     if os.environ.get('TIME_SERVICE_ENABLED', default="FALSE").lower() == "true" :
         time_service_enabled = "1"
@@ -88,6 +92,7 @@ def start_replica_cmd(builddir, replica_id):
             "-i", str(replica_id),
             "-s", statusTimerMilli,
             "-v", viewChangeTimeoutMilli,
+            "-V", blockchain_version,
             "-l", os.path.join(builddir, "tests", "simpleKVBC", "scripts", "logging.properties"),
             "-f", time_service_enabled,
             "-b", "2",
@@ -105,6 +110,10 @@ def start_replica_cmd_with_key_exchange(builddir, replica_id):
     """
     statusTimerMilli = "500"
     viewChangeTimeoutMilli = "10000"
+    if os.environ.get('BLOCKCHAIN_VERSION', default="1").lower() == "4" :
+        blockchain_version = "4"
+    else :
+        blockchain_version = "1"
     path = os.path.join(builddir, "tests", "simpleKVBC", "TesterReplica", "skvbc_replica")
     if os.environ.get('TIME_SERVICE_ENABLED', default="FALSE").lower() == "true" :
         time_service_enabled = "1"
@@ -117,6 +126,7 @@ def start_replica_cmd_with_key_exchange(builddir, replica_id):
             "-i", str(replica_id),
             "-s", statusTimerMilli,
             "-v", viewChangeTimeoutMilli,
+            "-V", blockchain_version,
             "-l", os.path.join(builddir, "tests", "simpleKVBC", "scripts", "logging.properties"),
             "-f", time_service_enabled,
             "-b", "2",
