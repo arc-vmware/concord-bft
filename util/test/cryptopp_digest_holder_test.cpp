@@ -35,7 +35,7 @@ SHA_Hashes sha256_hashes[] = {{"sha256", "5d5b09f6dcb2d53a5fffc60c4ac0d55fabdf55
 
 namespace {
 
-TEST(digest_holder_test, test_constructors) {
+TEST(cryptopp_digest_holder_test, test_constructors) {
   {
     Digest digest;
     ASSERT_EQ(true, digest.isZero());
@@ -95,7 +95,7 @@ TEST(digest_holder_test, test_constructors) {
   }
 }
 
-TEST(digest_holder_test, test_overloaded_operators) {
+TEST(cryptopp_digest_holder_test, test_overloaded_operators) {
   {
     const char* cp = "VMware.";
     Digest digest_1(cp);
@@ -126,7 +126,7 @@ TEST(digest_holder_test, test_overloaded_operators) {
   }
 }
 
-TEST(digest_holder_test, test_digest_of_digest) {
+TEST(cryptopp_digest_holder_test, test_digest_of_digest) {
   Digest digest(sha256_hashes[0].input.data(), sha256_hashes[0].input.size());
   Digest digest_of_digest;
 

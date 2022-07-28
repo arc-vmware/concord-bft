@@ -67,7 +67,7 @@ apt-get ${APT_GET_FLAGS} install \
     libz-dev \
     libzstd-dev
 
-pip3 install --upgrade wheel && pip3 install --upgrade trio
+pip3 install --upgrade wheel && pip3 install --upgrade trio && pip3 install --upgrade pip
 pip3 install \
     eliot eliot-tree \
     tatsu==4.4.0 \
@@ -76,7 +76,8 @@ pip3 install \
     ecdsa \
     protobuf==3.15.8 \
     grpcio==1.37.1 \
-    grpcio-tools==1.37.1
+    grpcio-tools==1.37.1 \
+    cryptography==3.3.2
 
 # Build 3rd parties
 wget ${WGET_FLAGS} -O cmake-linux.sh \

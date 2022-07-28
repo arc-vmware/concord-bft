@@ -21,12 +21,14 @@ else()
     find_package(cryptopp REQUIRED)
 endif()
 
-target_link_libraries(secretsmanager PUBLIC ${CRYPTOPP_LIBRARIES})
+target_link_libraries(secretsmanager PUBLIC util ${CRYPTOPP_LIBRARIES})
 target_include_directories(secretsmanager PUBLIC include ${CRYPTOPP_INCLUDE_DIRS})
 target_include_directories(secretsmanager PRIVATE src)
+target_include_directories(secretsmanager PUBLIC ../bftengine/include/bftengine)
 
-target_link_libraries(secretsmanager_shared PUBLIC ${CRYPTOPP_LIBRARIES})
+target_link_libraries(secretsmanager_shared PUBLIC util_shared ${CRYPTOPP_LIBRARIES})
 target_include_directories(secretsmanager_shared PUBLIC include ${CRYPTOPP_INCLUDE_DIRS})
+target_include_directories(secretsmanager_shared PUBLIC ../bftengine/include/bftengine)
 
 if (USE_JSON AND USE_HTTPLIB)
     add_subdirectory(secretretriever)

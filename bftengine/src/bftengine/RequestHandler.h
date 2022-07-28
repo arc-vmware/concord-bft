@@ -26,16 +26,7 @@ class RequestHandler : public IRequestsHandler {
  public:
   RequestHandler(
       concord::performance::ISystemResourceEntity &resourceEntity,
-      std::shared_ptr<concordMetrics::Aggregator> aggregator_ = std::make_shared<concordMetrics::Aggregator>())
-      : resourceEntity_(resourceEntity) {
-    using namespace concord::reconfiguration;
-    reconfig_handler_.push_back(std::make_shared<ReconfigurationHandler>());
-    for (const auto &rh : reconfig_handler_) {
-      reconfig_dispatcher_.addReconfigurationHandler(rh);
-    }
-    reconfig_dispatcher_.addReconfigurationHandler(std::make_shared<ClientReconfigurationHandler>());
-    reconfig_dispatcher_.setAggregator(aggregator_);
-  }
+      std::shared_ptr<concordMetrics::Aggregator> aggregator_ = std::make_shared<concordMetrics::Aggregator>());
 
   void execute(ExecutionRequestsQueue &requests,
                std::optional<Timestamp> timestamp,
@@ -47,25 +38,13 @@ class RequestHandler : public IRequestsHandler {
                   const std::string &batchCid,
                   concordUtils::SpanWrapper &parent_span) override;
 
-  void setUserRequestHandler(std::shared_ptr<IRequestsHandler> userHdlr) {
-    if (userHdlr) {
-      userRequestsHandler_ = userHdlr;
-      for (const auto &rh : userHdlr->getReconfigurationHandler()) {
-        reconfig_dispatcher_.addReconfigurationHandler(rh);
-      }
-    }
-  }
+  void setUserRequestHandler(std::shared_ptr<IRequestsHandler> userHdlr);
 
   void setReconfigurationHandler(std::shared_ptr<concord::reconfiguration::IReconfigurationHandler> rh,
                                  concord::reconfiguration::ReconfigurationHandlerType type =
-                                     concord::reconfiguration::ReconfigurationHandlerType::REGULAR) override {
-    IRequestsHandler::setReconfigurationHandler(rh, type);
-    reconfig_dispatcher_.addReconfigurationHandler(rh, type);
-  }
+                                     concord::reconfiguration::ReconfigurationHandlerType::REGULAR) override;
 
-  void setCronTableRegistry(const std::shared_ptr<concord::cron::CronTableRegistry> &reg) {
-    cron_table_registry_ = reg;
-  }
+  void setCronTableRegistry(const std::shared_ptr<concord::cron::CronTableRegistry> &reg);
   void setPersistentStorage(const std::shared_ptr<bftEngine::impl::PersistentStorage> &persistent_storage) override;
   void onFinishExecutingReadWriteRequests() override { userRequestsHandler_->onFinishExecutingReadWriteRequests(); }
   std::shared_ptr<IRequestsHandler> getUserHandler() { return userRequestsHandler_; }
