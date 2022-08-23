@@ -47,15 +47,15 @@ void ConfigFileParser::parse() {
       continue;
     }
 
-    if (line[0] == value_delimiter_) {  // of the form '- value'
-      LOG_TRACE(logger_, "line:" << line_no << " VALUE_DELIMETER");
-      value = line.substr(1);
+    if (tmp[0] == value_delimiter_) {  // of the form '- value'
+      value = tmp.substr(1);
       concord::util::ltrim_inplace(value);
-      LOG_TRACE(logger_, "line:" << line_no << " value: " << value);
       if (!key.empty())
         parameters_map_.insert(pair<string, string>(key, value));
-      else
-        throw ParseError(*this, line_no, "not found key for value: " + value);
+      else {
+        LOG_FATAL(logger_, "not found key for value " << value);
+        return false;
+      }
       continue;
     }
     size_t keyDelimiterPos = line.find_first_of(key_delimiter_);
@@ -85,8 +85,30 @@ size_t ConfigFileParser::count(const string& key) {
   return res;
 }
 
-std::vector<std::string> ConfigFileParser::splitValue(const std::string& value_to_split, const char* delimiter) {
-  LOG_TRACE(logger_, "valueToSplit: " << value_to_split << ", delimiter: " << delimiter);
+vector<string> ConfigFileParser::GetValues(const string& key) {
+  vector<string> values;
+  pair<ParamsMultiMapIt, ParamsMultiMapIt> range = parameters_map_.equal_range(key);
+  LOG_DEBUG(logger_, "getValues() for key: " << key);
+  if (range.first != parameters_map_.end()) {
+    for (auto it = range.first; it != range.second; ++it) {
+      values.push_back(it->second);
+      LOG_DEBUG(logger_, "value: " << it->second);
+    }
+  }
+  return values;
+}
+
+std::string ConfigFileParser::GetNthValue(const string& key, size_t nth) {
+  if (nth < 1) return std::string{};
+  if (nth > parameters_map_.count(key)) return std::string{};
+  auto it = parameters_map_.lower_bound(key);
+  std::advance(it, nth - 1);
+  LOG_DEBUG(logger_, "GetNthValue() for key: " << key << " nth: " << nth << " value: " << it->second);
+  return it->second;
+}
+
+std::vector<std::string> ConfigFileParser::SplitValue(const std::string& value_to_split, const char* delimiter) {
+  LOG_DEBUG(logger_, "valueToSplit: " << value_to_split << ", delimiter: " << delimiter);
   char* rest = (char*)value_to_split.c_str();
   char* token;
   std::vector<std::string> values;

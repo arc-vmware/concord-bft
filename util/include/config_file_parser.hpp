@@ -59,7 +59,10 @@ class ConfigFileParser {
     return values;
   }
 
-  std::vector<std::string> splitValue(const std::string& value_to_split, const char* delimiter);
+  // Returns the nth value (counting from 1) for key (or empty string if it does not exist)
+  std::string GetNthValue(const std::string& key, size_t nth);
+
+  std::vector<std::string> SplitValue(const std::string& value_to_split, const char* delimiter);
 
   void printAll();
 
